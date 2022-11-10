@@ -9,3 +9,11 @@ seqtk subseq $i_proteins.fa $i.longest-gene.gtf.id > $i.longest-gene.proteins.fa
 wc -l $i.longest-gene.gtf.id
 wc -l $i.longest-gene.proteins.fa
 done
+
+conda deactivate
+
+conda activate orthofinder
+
+orthofinder -f /mnt/content_176/yichun/fungi/aspergillus/comparative -t 76 -a 76 -M msa
+
+conda deactivate
