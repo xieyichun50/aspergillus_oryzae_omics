@@ -26,19 +26,27 @@ rsync /mnt/content_176/yichun/fungi/aspergillus/genome/AoH_proteins.fa  Aspergil
 rsync /mnt/content_176/yichun/fungi/aspergillus/genome/AoL_genomic.gff3 Aspergillus_oryzae_AoL/genes.gff
 rsync /mnt/content_176/yichun/fungi/aspergillus/genome/AoL_proteins.fa  Aspergillus_oryzae_AoL/protein.fa
 ```
+```
+java -jar /mnt/content_176/yichun/tools/snpEff/snpEff.jar build -gff3 -v Aspergillus_oryzae_AoH
+java -jar /mnt/content_176/yichun/tools/snpEff/snpEff.jar build -gff3 -v Aspergillus_oryzae_AoL
+```
+
 In the `$dir`
 
 ```
-/mnt/content_176/yichun/tools/snpEff/data$ tree *
-Aspergillus_oryzae_AoH
-├── genes.gff
-└── protein.fa
-Aspergillus_oryzae_AoL
-├── genes.gff
-└── protein.fa
-genomes
-├── Aspergillus_oryzae_AoH.fa
-└── Aspergillus_oryzae_AoL.fa
+/mnt/content_176/yichun/tools/snpEff/data/
+├── Aspergillus_oryzae_AoH
+│   ├── genes.gff
+│   ├── protein.fa
+│   └── snpEffectPredictor.bin
+├── Aspergillus_oryzae_AoL
+│   ├── genes.gff
+│   ├── protein.fa
+│   └── snpEffectPredictor.bin
+└── genomes
+    ├── Aspergillus_oryzae_AoH.fa
+    └── Aspergillus_oryzae_AoL.fa
 
-0 directories, 6 files
+3 directories, 8 files
+
 ```
