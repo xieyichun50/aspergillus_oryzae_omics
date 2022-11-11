@@ -17,3 +17,5 @@ conda activate orthofinder
 orthofinder -f /mnt/content_176/yichun/fungi/aspergillus/comparative -t 76 -a 76 -M msa
 
 conda deactivate
+
+rsync -avzP yichun_hml@137.189.43.176:/mnt/content_176/yichun/fungi/aspergillus/comparative --exclude Gene_Trees/ --exclude MultipleSequenceAlignments/ --exclude Orthogroup_Sequences/ --exclude Resolved_Gene_Trees/ --exclude Single_Copy_Orthologue_Sequences/ --exclude WorkingDirectory/ .
