@@ -2,6 +2,7 @@ library(ggplot2)
 library(dplyr)
 library(tidyr)
 
+setwd("/mnt/content_176/yichun/fungi/aspergillus/comparative/variant/")
 addline_format <- function(x,...){ 
   gsub('_','\n',x) 
 } 
@@ -99,19 +100,9 @@ plotdata$Group=paste0(plotdata$Cluster, " (", plotdata$Genedenominator, ")")
 plotdata$ONTOLOGY<-gsub(" ", "\n", plotdata$ONTOLOGY)
 list(plotdata$Group)
 
-plotdata1<-subset(plotdata, 
-                  ratio1 > 0.01 & 
-                    ONTOLOGY != "Human\nDiseases" & 
-                    ONTOLOGY != "Organismal\nSystems" & 
-                    Description != "MAPK signaling pathway - fly" &
-                    Description != "Apoptosis - fly" &
-                    Description != "Autophagy - animal" &
-                    Description != "Autophagy - other" &
-                    Description != "Drug metabolism - other enzymes" &
-                    Description != "Mitophagy - animal" &
-                    Description != "Hedgehog signaling pathway - fly" &
-                    Description != "Wnt signaling pathway")
-a<-plotdata1[plotdata1$ONTOLOGY != "Metabolism",] %>%
+keggref<-read.delim("/mnt/content_176/yichun/fungi/aspergillus/genome/kegg_aor.txt", header = F)
+plotdata1<-plotdata[plotdata$ID %in% keggref$V1 & is.na(plotdata$ONTOLOGY) ==F,]
+a<-plotdata1[plotdata1$ONTOLOGY != "Human\nDiseases",] %>%
   mutate(Groups = factor(Groups, levels = c("SNP","INDEL")),
          Annotation = factor(Annotation, levels = c("5_prime_UTR_variant",
                                                     "synonymous_variant",
@@ -139,8 +130,8 @@ a<-plotdata1[plotdata1$ONTOLOGY != "Metabolism",] %>%
   facet_grid(ONTOLOGY~Groups, scales = "free", space = "free")
 
 a
-ggsave(paste0(ref,".KEGG1.tiff"), width = 12, height = 16, units = "in", dpi = 300)
-ggsave(paste0(ref,".KEGG1.png"), width = 12, height = 16, units = "in", dpi = 300)
+ggsave(paste0(ref,".KEGG.tiff"), width = 12, height = 16, units = "in", dpi = 300)
+ggsave(paste0(ref,".KEGG.png"), width = 12, height = 16, units = "in", dpi = 300)
 
 a<-plotdata1[plotdata1$ONTOLOGY == "Metabolism",] %>%
   mutate(Groups = factor(Groups, levels = c("SNP","INDEL")),
