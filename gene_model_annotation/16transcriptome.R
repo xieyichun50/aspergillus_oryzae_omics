@@ -134,10 +134,10 @@ ggsave(paste0("analysis/DEG.pie.",species,".png"),
 a<-DEG %>%
   mutate(Groups = factor(Groups, levels = c("ME->ES", "ES->MS")),
          change = factor(change, levels = c("Up","ns","Down"))) %>%
-  ggplot(aes(x = -logFC, y = -log10(FDR), 
+  ggplot(aes(x = logFC, y = -log10(FDR), 
                           colour = change))+
   geom_point(shape = 20, size = 1)+
-  scale_colour_manual(values = c("lightskyblue", "gray", "coral"))+
+  scale_colour_manual(values = c("coral", "gray", "lightskyblue"))+
   scale_x_continuous(limits = c(-10,10), breaks = seq(-10,10,2))+
   scale_y_continuous(limits = c(0,20), breaks = seq(0,20,5))+
   labs(x = "log2(Fold change)", y = "-log10(FDR)", legend = "")+
