@@ -107,3 +107,154 @@ GO.all.1<-as.data.frame(GO.all.1)
 write.table(GO.all.1, paste0(ref,".GO.table.txt"),
             quote = F, row.names = F, sep = "\t")
 
+##pathview
+keggref<-read.delim("/mnt/content_176/yichun/fungi/aspergillus/genome/kegg_aor.txt", header = F)
+Geneskopair.1v1<-read.delim(paste0("/mnt/content_176/yichun/fungi/aspergillus/genome/AoH.ko.1v1.txt"), header = T)
+mut.ko.matrix<-as.data.frame(unique(Geneskopair.1v1$ko[Geneskopair.1v1$Genes %in% mut$Genes]))
+names(mut.ko.matrix)[1]="ko"
+mut.ko.matrix.bk<-mut.ko.matrix
+mut$count<-1
+mut.matrix<-merge(mut,Geneskopair.1v1, by = "Genes", all.x = T)
+
+Group<-c("SNP","INDEL")
+
+for (i in 1:length(Group)) {
+  mut.matrix.sub<-mut.matrix[mut.matrix$Group==Group[i],c("count","ko")]
+  mut.ko.matrix.sub<-mut.matrix.sub %>% group_by(ko) %>% summarise(sum = sum(count))
+  names(mut.ko.matrix.sub)[2]=Group[i]
+  mut.ko.matrix<-merge(mut.ko.matrix, mut.ko.matrix.sub, all.x = TRUE, by = "ko") 
+}
+
+rm(mut.matrix.sub, mut.ko.matrix.sub)
+mut.ko.matrix<-mut.ko.matrix[is.na(mut.ko.matrix$ko)==F,]
+row.names(mut.ko.matrix)<-mut.ko.matrix$ko
+mut.ko.matrix<-mut.ko.matrix[,names(mut.ko.matrix) %in% Group]
+
+write.table(mut.ko.matrix, "KO.matrix.txt",
+            sep = "\t", quote = F, row.names = T)
+mut.ko.matrix.all<-mut.ko.matrix
+
+##SNP
+mut.ko.matrix<-mut.ko.matrix.bk
+Group<-c("5_prime_UTR_variant",
+         "synonymous_variant",
+         "missense_variant",
+         "gain/loss_start/stop",
+         "splicing variant",
+         "3_prime_UTR_variant")
+
+for (i in 1:length(Group)) {
+  mut.matrix.sub<-mut.matrix[mut.matrix$Annotation==Group[i] & mut.matrix$Groups == "SNP",
+                             c("count","ko")]
+  mut.ko.matrix.sub<-mut.matrix.sub %>% group_by(ko) %>% summarise(sum = sum(count))
+  names(mut.ko.matrix.sub)[2]=Group[i]
+  mut.ko.matrix<-merge(mut.ko.matrix, mut.ko.matrix.sub, all.x = TRUE, by = "ko") 
+}
+
+rm(mut.matrix.sub, mut.ko.matrix.sub)
+mut.ko.matrix<-mut.ko.matrix[is.na(mut.ko.matrix[,2])==F |
+                               is.na(mut.ko.matrix[,3])==F |
+                               is.na(mut.ko.matrix[,4])==F |
+                               is.na(mut.ko.matrix[,5])==F |
+                               is.na(mut.ko.matrix[,6])==F |
+                               is.na(mut.ko.matrix[,7])==F,]
+row.names(mut.ko.matrix)<-mut.ko.matrix$ko
+mut.ko.matrix<-mut.ko.matrix[,names(mut.ko.matrix) %in% Group]
+
+write.table(mut.ko.matrix, "KO.matrix.SNP.txt",
+            sep = "\t", quote = F, row.names = T)
+mut.ko.matrix.SNP<-mut.ko.matrix
+
+##INDEL
+mut.ko.matrix<-mut.ko.matrix.bk
+Group<-c("5_prime_UTR_variant",
+         "inframe_deletion",
+         "frameshift_variant",
+         "gain/loss_start/stop",
+         "splicing variant",
+         "3_prime_UTR_variant")
+  
+for (i in 1:length(Group)) {
+  mut.matrix.sub<-mut.matrix[mut.matrix$Annotation==Group[i] & mut.matrix$Groups == "INDEL",
+                             c("count","ko")]
+  mut.ko.matrix.sub<-mut.matrix.sub %>% group_by(ko) %>% summarise(sum = sum(count))
+  names(mut.ko.matrix.sub)[2]=Group[i]
+  mut.ko.matrix<-merge(mut.ko.matrix, mut.ko.matrix.sub, all.x = TRUE, by = "ko") 
+}
+
+rm(mut.matrix.sub, mut.ko.matrix.sub)
+
+mut.ko.matrix<-mut.ko.matrix[is.na(mut.ko.matrix[,2])==F |
+                               is.na(mut.ko.matrix[,3])==F |
+                               is.na(mut.ko.matrix[,4])==F |
+                               is.na(mut.ko.matrix[,5])==F |
+                               is.na(mut.ko.matrix[,6])==F |
+                               is.na(mut.ko.matrix[,7])==F,]
+row.names(mut.ko.matrix)<-mut.ko.matrix$ko
+mut.ko.matrix<-mut.ko.matrix[,names(mut.ko.matrix) %in% Group]
+
+write.table(mut.ko.matrix, "KO.matrix.INDEL.txt",
+            sep = "\t", quote = F, row.names = T)
+mut.ko.matrix.indel<-mut.ko.matrix
+
+setwd("pv/")
+library(pathview)
+for (i in c(1:90,93:nrow(keggref))) {
+  pathwayid<-keggref$V1[i]
+  plotdata<-pathview(gene.data = mut.ko.matrix.all,
+                     pathway.id = pathwayid, 
+                     species = "ko", 
+                     gene.idtype = "KEGG", 
+                     limit = list(gene = 5), 
+                     bins = list(gene=10), 
+                     multi.state = TRUE, 
+                     na.col="transparent", 
+                     out.suffix = paste0(ref,".all"))
+  if (class(plotdata) == "list"){
+    plot.data.gene<-as.data.frame(plotdata$plot.data.gene)
+    plot.data.gene$kegg.names<-unlist(plot.data.gene$kegg.names)
+    plot.data.gene$all.mapped<-unlist(plot.data.gene$all.mapped)
+    plot.data.gene$type<-unlist(plot.data.gene$type)
+    write.table(plot.data.gene,
+                paste0(pathwayid, ".table.txt"),
+                sep = "\t", row.names = F, quote = F)
+  } else {}
+  #SNP
+  plotdata<-pathview(gene.data = mut.ko.matrix.SNP,
+                     pathway.id = pathwayid, 
+                     species = "ko", 
+                     gene.idtype = "KEGG", 
+                     limit = list(gene = 5), 
+                     bins = list(gene=10), 
+                     multi.state = TRUE, 
+                     na.col="transparent", 
+                     out.suffix = paste0(ref,".SNP"))
+  if (class(plotdata) == "list"){
+    plot.data.gene<-as.data.frame(plotdata$plot.data.gene)
+    plot.data.gene$kegg.names<-unlist(plot.data.gene$kegg.names)
+    plot.data.gene$all.mapped<-unlist(plot.data.gene$all.mapped)
+    plot.data.gene$type<-unlist(plot.data.gene$type)
+    write.table(plot.data.gene,
+                paste0(pathwayid, ".table.SNP.txt"),
+                sep = "\t", row.names = F, quote = F)
+  } else {}
+  
+  plotdata<-pathview(gene.data = mut.ko.matrix.indel,
+                     pathway.id = pathwayid, 
+                     species = "ko", 
+                     gene.idtype = "KEGG", 
+                     limit = list(gene = 5), 
+                     bins = list(gene=10), 
+                     multi.state = TRUE, 
+                     na.col="transparent", 
+                     out.suffix = paste0(ref,".INDEL"))
+  if (class(plotdata) == "list"){
+    plot.data.gene<-as.data.frame(plotdata$plot.data.gene)
+    plot.data.gene$kegg.names<-unlist(plot.data.gene$kegg.names)
+    plot.data.gene$all.mapped<-unlist(plot.data.gene$all.mapped)
+    plot.data.gene$type<-unlist(plot.data.gene$type)
+    write.table(plot.data.gene,
+                paste0(pathwayid, ".table.INDEL.txt"),
+                sep = "\t", row.names = F, quote = F)
+  } else {}
+}
