@@ -27,6 +27,9 @@ indel$Annotation[-which(indel$Annotation %in% c("3_prime_UTR_variant",
 
 indel$Groups<-"INDEL"
 mut<-rbind(snp,indel)
+write.table(mut,
+            paste0(ref,"-",alt,".delta.mut.genelist.txt"),
+            row.names = F, sep = "\t", quote = F)
 
 ##KOG
 kog2name<-read.delim("/mnt/content_176/yichun/scripts/comparative/4function_anno2tree/annotation_generalterm/kog2name.txt",
