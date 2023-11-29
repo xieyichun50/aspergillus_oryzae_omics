@@ -13,6 +13,8 @@ echo "/mnt/content_176/yichun/fungi/aspergillus/202309aoryzae10/variant/${id2}.b
 done
 
 bcftools merge -l ${dir_var}/filelist.txt --merge both --output-type v --output ${dir_var}/aory.merge.vcf
-
+bcftools merge -l ${dir_var}/filelist.txt --merge snps --output-type b --output ${dir_var}/aory.merge.bcf
+bcftools index ${dir_var}/aory.merge.bcf
 ##create consensus fasta
-python3 /mnt/content_176/yichun/tools/vcf2phylip.py --input ${dir_var}/aory.merge.vcf --output-folder ${dir_var}/aory.merge --min-samples-locus 3 --fasta --nexus --write-used-sites
+bcftools consensus -f ${refgenome} --samples-file ${dir_var}/samples.txt -o ${dir_var}/aory.merge.fa ${dir_var}/aory.merge.bcf
+#python3 /mnt/content_176/yichun/tools/vcf2phylip.py --input ${dir_var}/aory.merge.vcf --output-folder ${dir_var}/aory.merge --min-samples-locus 3 --fasta --nexus --write-used-sites
