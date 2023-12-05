@@ -16,7 +16,7 @@ do
 #bowtie2 -x ${refgenome} -1 ${dir_fq}/${id2}.r1.fq -2 ${dir_fq}/${id2}.r2.fq -S ${dir_bam}/${id2}.sam --phred33 -p 36
 
 echo "bwa mem -M -t 36 -k 32 -R '@RG\tID:${id2}\tSM:${id2}\tPL:illumina\tLB:${id2}\tPU:${id2}' ${refgenome} ${dir_fq}/${id2}.r1.fq ${dir_fq}/${id2}.r2.fq > ${dir_bam}/${id2}.sam"
-bwa mem -M -t 36 -k 32 -R '@RG\tID:${id2}\tSM:${id2}\tPL:illumina\tLB:${id2}\tPU:${id2}' ${refgenome} ${dir_fq}/${id2}.r1.fq ${dir_fq}/${id2}.r2.fq > ${dir_bam}/${id2}.sam
+bwa mem -M -t 36 -k 32 -R "@RG\tID:${id2}\tSM:${id2}\tPL:illumina\tLB:${id2}\tPU:${id2}" ${refgenome} ${dir_fq}/${id2}.r1.fq ${dir_fq}/${id2}.r2.fq > ${dir_bam}/${id2}.sam
 
 echo "samtools view --threads 36 -b -S ${dir_bam}/${id2}.sam > ${dir_bam}/${id2}.bam"
 samtools view --threads 36 -b -S ${dir_bam}/${id2}.sam > ${dir_bam}/${id2}.bam
