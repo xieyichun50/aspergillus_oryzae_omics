@@ -37,6 +37,6 @@ samtools index -@ 36 ${dir_bam}/${id2}.sorted.bam
 
 samtools flagstat ${dir_bam}/${id2}.sorted.bam >> ${dir_bam}/${id2}.flagstat
 
-#bcftools mpileup --threads 36 --max-depth 1000 --min-BQ 20 --min-MQ 20 --excl-flags UNMAP,SECONDARY,QCFAIL,DUP --min-ireads 5 -f ${refgenome} -o ${dir_var}/${id2}.vcf -Ov ${dir_bam}/${id2}.sorted.bam
+bcftools mpileup --threads 36 --max-depth 1000 --min-BQ 20 --min-MQ 20 --excl-flags UNMAP,SECONDARY,QCFAIL,DUP --min-ireads 5 -f ${refgenome} -o ${dir_var}/${id2}.vcf -Ov ${dir_bam}/${id2}.sorted.bam
 
 done
