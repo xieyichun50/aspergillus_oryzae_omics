@@ -1,5 +1,8 @@
 library(tidyr)
 library(dplyr)
+library(Hmisc)
+library(stringr)
+library(ggplot2)
 
 setwd("202309aoryzae10/variant_bcf/")
 
@@ -29,12 +32,30 @@ for (i in 1:nrow(samplelist)){
   vcf.sub$AR<-as.numeric(vcf.sub$AR)
   vcf.sub$refr<-(vcf.sub$RF+vcf.sub$RR)/(vcf.sub$RF+vcf.sub$RR+vcf.sub$AF+vcf.sub$AR)
   #vcf.sub$pdepth<-vcf.sub$RF+vcf.sub$RR+vcf.sub$AF+vcf.sub$AR
-  vcf.sub<-vcf.sub[(vcf.sub$RF+vcf.sub$RR+vcf.sub$AF+vcf.sub$AR)>=10,c("CHROM","POS","REF","ALT","refr")]
+  vcf.sub<-vcf.sub[(vcf.sub$RF+vcf.sub$RR+vcf.sub$AF+vcf.sub$AR)>=10 &
+                     (vcf.sub$AF+vcf.sub$AR)>=5,
+                   c("CHROM","POS","REF","ALT","refr")]
   names(vcf.sub)<-c("CHROM","POS","REF","ALT",samplelist$sampleID[i])
   vcf.merge<-merge(vcf.merge, vcf.sub, by = c("CHROM","POS","REF","ALT"), all = T)
 }
-
+rm(i, vcf.sub)
 save.image("bcfmerge.RData")
 write.table(vcf.merge, "aory.merge.reffq.txt",
             sep = "\t",
             quote = F, row.names = F)
+
+##correlation
+vcf.merge.matrix<-vcf.merge
+row.names(vcf.merge.matrix)<-paste0(vcf.merge.matrix$CHROM,":",vcf.merge.matrix$POS,":",
+                                    vcf.merge.matrix$REF,"|",vcf.merge.matrix$ALT)
+vcf.merge.matrix<-vcf.merge.matrix[,5:ncol(vcf.merge.matrix)]
+
+d<-cor(vcf.merge.matrix, method = "pearson", use = "na.or.complete")
+View(as.data.frame(d))
+h<-hclust(as.dist(1-d), method = "complete")
+
+png(filename = paste0("aory.sample_pearson_tree.png"), 
+    res = 300, units = "in", width = 4, height = 6)
+plot(varclus(d, similarity="pearson", type = "similarity.matrix"), hang = -1)
+dev.off()
+rm(pca.eigenvalues,pca.matrix,pca.scores,h,p,d)
