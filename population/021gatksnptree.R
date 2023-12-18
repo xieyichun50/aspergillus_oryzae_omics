@@ -14,8 +14,8 @@ sample.order<-c("TSS","TS3","AoL",
                 "kojiM","kojiA","kojiB","kojiC","kojiJ","AoH","RDS","RD3","kojiD")
 ####only 2023 samples
 samplegroup=".new"
-sample.order<-c("TSS","TS3","AoL",
-                "kojiM","kojiJ","RDS","AoH","RD3")
+sample.order<-c("TSS190621","TS3230418","AoL",
+                "koji20230527","koji20230603","RDS170320","AoH","RD3230418")
 
 ##read in vcf (including koji ABCD)
 snpgdsVCF2GDS(paste0("aory",samplegroup,".vcf"),
@@ -30,9 +30,10 @@ input.ibs<- snpgdsHCluster(snpgdsIBS(input.gds,num.thread=2, autosome.only=FALSE
 input.cuttree<-snpgdsCutTree(input.ibs)
 treefile<- input.cuttree$dendrogram
 
+par(mar = c(5, 5, 5, 5), xpd =T)
 png(filename = paste0("aory",samplegroup,".gatksnptree.png"), 
     res = 300, units = "in", width = 6, height = 4)
-plot(input.cuttree$dendrogram,horiz=T)
+plot(input.cuttree$dendrogram, horiz=T, cex = 0.8, xlim = c(0.4,-0.05))
 dev.off()
 
 ##similarity matrix (using distance)
@@ -44,7 +45,9 @@ input.similarity<-input.similarity[sample.order,sample.order]
 pheatmap(input.similarity, scale = "none", 
          cluster_rows = F, cluster_cols = F,
          display_numbers = T,
-         width = 6, height = 6,
+         fontsize = 6,
+         width = 5, height = 5,
+         angle_col = 45,
          filename = paste0("aory",samplegroup,".similarity_matrix.png"))
 
 input.pair<-snpgdsPairScore(input.gds,
@@ -66,17 +69,17 @@ names(input.vcf)<-c("CHROM","POS","ID",
                     "QUAL","FILTER",
                     "INFO","FORMAT",
                     "AoH","AoL",
-                    "RD3","RDS",
-                    "TS3","TSS",
-                    "kojiJ","kojiM")
+                    "RD3230418","RDS170320",
+                    "TS3230418","TSS190621",
+                    "koji20230527","koji20230603")
 
 input.vcf<-input.vcf[,c("CHROM","POS","ID",
                         "REF","ALT",
                         "QUAL","FILTER",
                         "INFO","FORMAT",
-                        "AoL","TS3","TSS",
-                        "AoH","RD3","RDS",
-                        "kojiM","kojiJ")]
+                        "AoL","TS3230418","TSS190621",
+                        "AoH","RD3230418","RDS170320",
+                        "koji20230527","koji20230603")]
 ####all
 names(input.vcf)<-c("CHROM","POS","ID",
                     "REF","ALT",
@@ -164,13 +167,14 @@ pheatmap(var.freq.matrix, scale = "none",
          display_numbers = F,
          cellwidth = 15, cellheight = 0.1,
          show_rownames = F, show_colnames = T,
+         angle_col = 45,
          width = ncol(var.freq.matrix)*0.5+2, height = nrow(var.freq.matrix)*0.002+1,
          filename = paste0("aory",samplegroup,".varheatmap.png"))
 
 ##filter markers
-var.select<-var.freq[var.freq$AoH > 0.95 & var.freq$RD3 > 0.95 & var.freq$RDS > 0.95 &
-                       var.freq$AoL < 0.05 & var.freq$TS3 < 0.05 & var.freq$TSS < 0.05 & 
-                       var.freq$kojiM > 0.05 & var.freq$kojiJ > 0.05,]
+var.select<-var.freq[var.freq$AoH > 0.95 & var.freq$RD3230418 > 0.95 & var.freq$RDS170320 > 0.95 &
+                       var.freq$AoL < 0.05 & var.freq$TS3230418 < 0.05 & var.freq$TSS190621 < 0.05 & 
+                       var.freq$koji20230527 > 0.05 & var.freq$koji20230603 > 0.05,]
 var.select<-merge(var.select, var.dp, 
                   by = c("CHROM","POS","REF","ALT"), all = F)
 write.table(var.select, paste0("aory",samplegroup,".varselect.txt"),
@@ -193,5 +197,17 @@ pheatmap(var.select.matrix, scale = "none",
          cellwidth = 50, cellheight = 6,
          fontsize_row = 6, fontsize_col = 12,
          show_rownames = T, show_colnames = T,
+         angle_col = 45,
          width = ncol(var.select.matrix)+1, height = nrow(var.select.matrix)*0.1+1,
          filename = paste0("aory",samplegroup,".varselect.heatmap.png"))
+
+##95 percent confidence interval
+ci.summary<-as.data.frame(matrix(NA, ncol = 4, nrow = ncol(var.select.matrix)))
+names(ci.summary)<-c("Sample","Mean","CI.lower","CI.upper")
+ci.summary$Sample<-names(var.select.matrix)
+for (i in 1:ncol(var.select.matrix)) {
+  t.test.sub<-t.test(var.select.matrix[i])
+  ci.summary$Mean[i]<-round(as.numeric(t.test.sub$estimate),3)
+  ci.summary$CI.lower[i]<-round(as.numeric(t.test.sub$conf.int)[1],3)
+  ci.summary$CI.upper[i]<-round(as.numeric(t.test.sub$conf.int)[2],3)
+}
